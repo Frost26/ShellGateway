@@ -4,10 +4,10 @@
       "command": "python",
       "args": [
         "-m", 
-        "linux_shell_server.main"
+        "main.py"
       ],
       "env": {
-        "PYTHONPATH": "c:\\Users\\Rhys\\OneDrive\\Documents\\mcp-linux-shell-server"
+        "PYTHONPATH": ""
       }
     }
   }

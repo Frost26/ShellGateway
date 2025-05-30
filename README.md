@@ -113,10 +113,6 @@ mcp-linux-shell-server/
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License
 
-## Support
 
-- GitHub Issues: Report bugs and request features
-- Documentation: Available in the repository wiki
-- MCP Protocol: https://modelcontextprotocol.io/

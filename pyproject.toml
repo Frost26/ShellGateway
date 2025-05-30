@@ -10,7 +10,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.8"
 authors = [
-    {name = "Rhys", email = "rhys@example.com"}
+    {name = "", email = ""}
 ]
 keywords = ["mcp", "server", "linux", "shell", "cli"]
 classifiers = [

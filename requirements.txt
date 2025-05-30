@@ -1,0 +1,14 @@
+# MCP Linux Shell Server Dependencies
+
+# Core MCP SDK
+mcp>=1.0.0
+
+# Type checking and validation (optional, for better development experience)
+typing-extensions>=4.5.0
+
+# Development dependencies (optional, use requirements-dev.txt for these)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# black>=23.0.0
+# mypy>=1.0.0
+# ruff>=0.1.0

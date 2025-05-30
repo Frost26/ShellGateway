@@ -36,6 +36,68 @@ A Model Context Protocol (MCP) server that provides Linux CLI access for Claude 
    }
    ```
 
+## Testing
+
+### Prerequisites
+
+Before running tests, ensure you have the required test dependencies:
+
+```bash
+# Install development dependencies including test tools
+pip install -e ".[dev]"
+
+# Or install test dependencies manually
+pip install pytest pytest-asyncio pytest-cov
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with verbose output
+pytest -v
+
+# Run tests with coverage report
+pytest --cov=linux_shell_server
+
+# Run tests with coverage and generate HTML report
+pytest --cov=linux_shell_server --cov-report=html
+
+# Run specific test file
+pytest tests/test_main.py
+
+# Run tests matching a pattern
+pytest -k "test_execute_command"
+
+# Run tests and stop on first failure
+pytest -x
+```
+
+### Test Coverage
+
+View coverage reports:
+```bash
+# Terminal coverage report
+pytest --cov=linux_shell_server --cov-report=term-missing
+
+# Generate HTML coverage report (opens in browser)
+pytest --cov=linux_shell_server --cov-report=html
+open htmlcov/index.html
+```
+
+### Continuous Testing
+
+For development, you can run tests automatically on file changes:
+```bash
+# Install pytest-watch
+pip install pytest-watch
+
+# Run tests on file changes
+ptw
+```
+
 ## Usage
 
 Once configured, Claude can execute Linux commands through the following tools:

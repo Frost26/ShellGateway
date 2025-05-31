@@ -1,14 +1,10 @@
 {
   "mcpServers": {
     "linux-shell": {
-      "command": "python",
+      "command": "/home/acidburn/Documents/codeProjects/mcp-linux-shell-server/venv/bin/python",
       "args": [
-        "-m", 
-        "main.py"
-      ],
-      "env": {
-        "PYTHONPATH": ""
-      }
+        "/home/acidburn/Documents/codeProjects/mcp-linux-shell-server/linux_shell_server/main.py"
+      ]
     }
   }
 }

@@ -178,7 +178,7 @@ To run the server in debug mode for troubleshooting:
 
 ```bash
 # Activate virtual environment
-source mcpEnv/bin/activate
+source yourEnv/bin/activate
 
 # Run server directly
 python -m linux_shell_server.main

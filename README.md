@@ -13,9 +13,12 @@ A secure Model Context Protocol (MCP) server that provides Linux shell command e
 ## Prerequisites
 
 - Python 3.8 or higher
-- Linux operating system
+- Debian GNU/Linux 12 (bookworm) x86_64 or Later
 - Claude Desktop (for integration)
-
+- ** There is no official Claude Desktop app for Linux; the following repository works but is no longer maintained by the creator.
+```
+https://github.com/aaddrick/claude-desktop-debian
+```
 ## Installation
 
 ### 1. Clone the Repository

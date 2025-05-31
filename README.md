@@ -155,19 +155,6 @@ mypy linux_shell_server/
 - Error outputs are captured and returned safely
 - Working directory changes are isolated to the server process
 
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Install development dependencies (`pip install -r requirements-dev.txt`)
-4. Make your changes
-5. Run tests (`python -m pytest`)
-6. Format code (`black . && ruff check . && isort .`)
-7. Commit your changes (`git commit -m 'Add amazing feature'`)
-8. Push to the branch (`git push origin feature/amazing-feature`)
-9. Open a Pull Request
-
 ## Troubleshooting
 
 ### Common Issues

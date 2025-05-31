@@ -19,18 +19,11 @@ A Model Context Protocol (MCP) server that provides secure Linux command-line ac
 
 ## 🛠️ Installation
 
-### Method 1: pip install (Recommended)
-
-```bash
-# Install from PyPI (when published)
-pip install linux-shell-server
-```
-
-### Method 2: Local Development Setup
+## Local Development Setup
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/mcp-linux-shell-server.git
+   git clone https://github.com/Frost26/mcp-linux-shell-server.git
    cd mcp-linux-shell-server
    ```
 

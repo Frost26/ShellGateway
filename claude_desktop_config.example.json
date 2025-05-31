@@ -1,10 +1,13 @@
 {
   "mcpServers": {
     "linux-shell": {
-      "command": "python3",
-      "args": ["-m", "linux_shell_server.main"],
+      "command": "/home/rinzler/Documents/CodeProjects/mcp-linux-shell-server/mcpEnv/bin/python",
+      "args": [
+        "-m",
+        "linux_shell_server.main"
+      ],
       "env": {
-        "PYTHONPATH": "/path/to/your/mcp-linux-shell-server"
+        "PYTHONPATH": "/home/rinzler/Documents/CodeProjects/mcp-linux-shell-server"
       }
     }
   }

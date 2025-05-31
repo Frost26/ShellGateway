@@ -1,6 +1,6 @@
 # MCP Linux Shell Server
 
-A secure Model Context Protocol (MCP) server that provides Linux shell command execution capabilities for Claude Desktop and other MCP clients.
+A secure Model Context Protocol (MCP) server that provides Linux shell command execution capabilities for Claude Desktop on Linux
 
 ## Features
 

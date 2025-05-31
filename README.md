@@ -21,7 +21,7 @@ A secure Model Context Protocol (MCP) server that provides Linux shell command e
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Frost26/mcp-linux-shell-server.git
 cd mcp-linux-shell-server
 ```
 
@@ -88,13 +88,13 @@ Replace `/path/to/your/mcp-linux-shell-server` with your actual project director
 {
   "mcpServers": {
     "linux-shell": {
-      "command": "/home/rinzler/Documents/CodeProjects/mcp-linux-shell-server/mcpEnv/bin/python",
+      "command": "/home/AI/Documents/CodeProjects/mcp-linux-shell-server/mcpEnv/bin/python",
       "args": [
         "-m",
         "linux_shell_server.main"
       ],
       "env": {
-        "PYTHONPATH": "/home/rinzler/Documents/CodeProjects/mcp-linux-shell-server"
+        "PYTHONPATH": "/home/AI/Documents/CodeProjects/mcp-linux-shell-server"
       }
     }
   }

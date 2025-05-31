@@ -1,108 +1,80 @@
-# Linux Shell Server
+# MCP Linux Shell Server
 
-A Model Context Protocol (MCP) server that provides Linux CLI access for Claude Dev mode on desktop applications.
+A Model Context Protocol (MCP) server that provides secure Linux command-line access for Claude Desktop. This server enables Claude to execute shell commands, navigate directories, and interact with the Linux filesystem in a controlled environment.
 
-## Features
+## 🚀 Features
 
-- **Safe Command Execution**: Execute Linux shell commands with proper error handling
-- **Directory Management**: Change and track working directories
-- **Structured Output**: Clean, parseable output for Claude integration
-- **Security Focused**: Runs with user permissions only
+- **Command Execution**: Run any Linux shell command with proper error handling
+- **Directory Navigation**: Change directories and track current working directory
+- **Structured Output**: Clean, parseable command output for Claude integration
+- **Async Architecture**: Built with modern Python async/await patterns
+- **Type Safety**: Full type hints and mypy compatibility
+- **Security Focused**: Runs with user-level permissions only
 
-## Installation
+## 📋 Requirements
+
+- Python 3.8 or higher
+- Linux operating system
+- Claude Desktop application
+
+## 🛠️ Installation
+
+### Method 1: pip install (Recommended)
+
+```bash
+# Install from PyPI (when published)
+pip install linux-shell-server
+```
+
+### Method 2: Local Development Setup
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/yourusername/mcp-linux-shell-server.git
    cd mcp-linux-shell-server
    ```
 
-2. **Install dependencies**:
+2. **Create a virtual environment**:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Linux/macOS
+   ```
+
+3. **Install in development mode**:
    ```bash
    pip install -e .
    ```
 
-3. **Configure Claude Desktop**:
-   Add to your Claude Desktop configuration file:
-   ```json
-   {
-     "mcpServers": {
-       "linux-shell": {
-         "command": "python",
-         "args": ["-m", "linux_shell_server.main"],
-         "env": {}
-       }
-     }
-   }
+## ⚙️ Configuration
+
+### Claude Desktop Setup
+
+Add the server to your Claude Desktop configuration file. For detailed configuration instructions, see [CONFIGURATION.md](CONFIGURATION.md).
+
+**Quick Setup:**
+
+1. Copy the example configuration:
+   ```bash
+   cp claude_desktop_config.example.json ~/.config/claude-desktop/claude_desktop_config.json
    ```
 
-## Testing
+2. Edit the configuration file and update the path to your repository:
+   ```bash
+   nano ~/.config/claude-desktop/claude_desktop_config.json
+   ```
 
-### Prerequisites
+3. Restart Claude Desktop
 
-Before running tests, ensure you have the required test dependencies:
+The configuration file is typically located at:
+- **Linux**: `~/.config/claude-desktop/claude_desktop_config.json`
 
-```bash
-# Install development dependencies including test tools
-pip install -e ".[dev]"
+## 🧪 Usage
 
-# Or install test dependencies manually
-pip install pytest pytest-asyncio pytest-cov
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest
-
-# Run tests with verbose output
-pytest -v
-
-# Run tests with coverage report
-pytest --cov=linux_shell_server
-
-# Run tests with coverage and generate HTML report
-pytest --cov=linux_shell_server --cov-report=html
-
-# Run specific test file
-pytest tests/test_main.py
-
-# Run tests matching a pattern
-pytest -k "test_execute_command"
-
-# Run tests and stop on first failure
-pytest -x
-```
-
-### Test Coverage
-
-View coverage reports:
-```bash
-# Terminal coverage report
-pytest --cov=linux_shell_server --cov-report=term-missing
-
-# Generate HTML coverage report (opens in browser)
-pytest --cov=linux_shell_server --cov-report=html
-open htmlcov/index.html
-```
-
-### Continuous Testing
-
-For development, you can run tests automatically on file changes:
-```bash
-# Install pytest-watch
-pip install pytest-watch
-
-# Run tests on file changes
-ptw
-```
-
-## Usage
-
-Once configured, Claude can execute Linux commands through the following tools:
+Once configured and Claude Desktop is restarted, you can interact with your Linux system through Claude using natural language commands.
 
 ### Available Tools
+
+The server provides three main tools:
 
 - **`execute_command`**: Execute any Linux shell command
   - Parameters: `command` (required), `working_directory` (optional)
@@ -115,66 +87,124 @@ Once configured, Claude can execute Linux commands through the following tools:
 
 ### Example Interactions
 
-Ask Claude to:
-- "List files in the current directory"
-- "Check system disk usage with df -h"
-- "Navigate to /var/log and show recent entries"
-- "Install a package using apt"
+Try asking Claude:
 
-## Development
+- "What files are in the current directory?"
+- "Show me the disk usage with df -h"
+- "Navigate to /var/log and show the latest entries"
+- "Check the system uptime"
+- "Create a new directory called 'projects'"
+- "What's the current working directory?"
 
-### Setup Development Environment
+## 🧪 Development & Testing
+
+### Development Setup
+
+1. **Clone and setup**:
+   ```bash
+   git clone https://github.com/yourusername/mcp-linux-shell-server.git
+   cd mcp-linux-shell-server
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+2. **Install with development dependencies**:
+   ```bash
+   pip install -e ".[dev]"
+   ```
+
+3. **Code Quality Tools**:
+   ```bash
+   # Format code
+   black .
+   
+   # Lint code
+   ruff check .
+   
+   # Type checking
+   mypy .
+   ```
+
+### Testing
+
+Run the test suite to ensure everything works correctly:
 
 ```bash
-# Install in development mode
-pip install -e ".[dev]"
-
-# Run tests
+# Run all tests
 pytest
 
-# Format code
-black .
-ruff check .
+# Run tests with verbose output
+pytest -v
 
-# Type checking
-mypy .
+# Run tests with coverage report
+pytest --cov=linux_shell_server --cov-report=term-missing
+
+# Run tests and generate HTML coverage report
+pytest --cov=linux_shell_server --cov-report=html
 ```
 
 ### Project Structure
 
 ```
 mcp-linux-shell-server/
-├── linux_shell_server/
+├── linux_shell_server/        # Main package
 │   ├── __init__.py
-│   └── main.py
-├── tests/
-├── .github/
-│   └── copilot-instructions.md
-├── .vscode/
-│   ├── tasks.json
-│   └── mcp.json
-├── pyproject.toml
-├── README.md
-└── LICENSE
+│   └── main.py                # MCP server implementation
+├── tests/                     # Test suite
+│   ├── __init__.py
+│   ├── conftest.py
+│   └── test_main.py
+├── pyproject.toml            # Project configuration
+├── requirements.txt          # Runtime dependencies
+├── requirements-dev.txt      # Development dependencies
+├── README.md                 # This file
+├── LICENSE                   # MIT License
+└── claude_desktop_config.example.json  # Example configuration
 ```
 
-## Security Considerations
+## 🔒 Security Considerations
+
+⚠️ **Important Security Notes:**
 
 - Commands execute with the same permissions as the server process
-- No command filtering or sandboxing is implemented
-- Suitable for development environments only
-- Consider implementing command whitelisting for production use
+- No command filtering or sandboxing is implemented by default
+- **Recommended for development environments only**
+- For production use, consider implementing:
+  - Command whitelisting
+  - Directory restrictions
+  - Resource limits
+  - Audit logging
 
-## Contributing
+## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-## License
+**Quick Start for Contributors:**
 
-MIT License
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and add tests
+4. **Run the test suite**: `pytest`
+5. **Format your code**: `black . && ruff check .`
+6. **Submit a pull request**
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+If you encounter issues:
+
+1. Check the [Claude Desktop debugging documentation](https://modelcontextprotocol.io/docs/tools/debugging)
+2. Review the server logs in Claude Desktop
+3. Ensure your virtual environment has all dependencies installed
+4. Verify the configuration file syntax
+
+## 📚 Related Resources
+
+- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
+- [MCP Python SDK](https://github.com/modelcontextprotocol/create-python-server)
+- [Claude Desktop Configuration Guide](https://docs.anthropic.com/claude/docs)
 
 

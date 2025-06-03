@@ -91,6 +91,7 @@ class ShellExecutor:
     
     async def _execute_with_timeout(self, command: str, cwd: str, timeout: int) -> Tuple[str, str, int]:
         """Execute command with timeout and proper process management"""
+        process = None
         try:
             # Create process with process group for better cleanup
             process = await asyncio.create_subprocess_shell(
@@ -113,32 +114,40 @@ class ShellExecutor:
             logger.warning(f"Command timed out after {timeout}s: {command}")
             
             # Kill the entire process group if possible
-            try:
-                if hasattr(os, 'killpg') and hasattr(process, 'pid'):
-                    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-                    # Give it a moment to terminate gracefully
-                    await asyncio.sleep(1)
-                    # Force kill if still running
-                    try:
-                        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-                    except:
-                        pass
-                else:
-                    process.terminate()
-                    await asyncio.sleep(1)
-                    process.kill()
-            except Exception as e:
-                logger.error(f"Error killing process: {e}")
-            
-            try:
-                await process.wait()
-            except:
-                pass
+            if process is not None:
+                try:
+                    if hasattr(os, 'killpg') and hasattr(process, 'pid') and process.pid is not None:
+                        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                        # Give it a moment to terminate gracefully
+                        await asyncio.sleep(1)
+                        # Force kill if still running
+                        try:
+                            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                        except:
+                            pass
+                    else:
+                        process.terminate()
+                        await asyncio.sleep(1)
+                        if process.returncode is None:
+                            process.kill()
+                except Exception as e:
+                    logger.error(f"Error killing process: {e}")
+                
+                try:
+                    await process.wait()
+                except:
+                    pass
             
             raise TimeoutError(f"Command timed out after {timeout} seconds")
         
         except Exception as e:
             logger.error(f"Error executing command: {e}")
+            if process is not None:
+                try:
+                    process.terminate()
+                    await process.wait()
+                except:
+                    pass
             raise
         
     async def execute_command(self, command: str, working_directory: Optional[str] = None) -> Dict[str, Any]:
@@ -318,52 +327,107 @@ async def handle_list_tools() -> List[Tool]:
 
 @server.call_tool()
 async def handle_call_tool(name: str, arguments: dict) -> List[types.TextContent]:
-    """Handle tool calls"""
+    """Handle tool calls with proper error handling"""
+    try:
+        if name == "execute_command":
+            command = arguments.get("command")
+            if not command or not isinstance(command, str):
+                return [
+                    types.TextContent(
+                        type="text",
+                        text="Error: Command parameter is required and must be a string"
+                    )
+                ]
+            
+            working_dir = arguments.get("working_directory")
+            if working_dir is not None and not isinstance(working_dir, str):
+                return [
+                    types.TextContent(
+                        type="text",
+                        text="Error: Working directory must be a string"
+                    )
+                ]
+            
+            result = await shell_executor.execute_command(command, working_dir)
+            return [
+                types.TextContent(
+                    type="text",
+                    text=result["output"]
+                )
+            ]
+        
+        elif name == "change_directory":
+            path = arguments.get("path")
+            if not path or not isinstance(path, str):
+                return [
+                    types.TextContent(
+                        type="text",
+                        text="Error: Path parameter is required and must be a string"
+                    )
+                ]
+            
+            result = await shell_executor.change_directory(path)
+            return [
+                types.TextContent(
+                    type="text", 
+                    text=result["output"]
+                )
+            ]
+        
+        elif name == "get_current_directory":
+            result = shell_executor.get_current_directory()
+            return [
+                types.TextContent(
+                    type="text",
+                    text=result["output"]
+                )
+            ]
+        
+        else:
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"Error: Unknown tool '{name}'"
+                )
+            ]
     
-    if name == "execute_command":
-        result = await shell_executor.execute_command(
-            arguments.get("command"),
-            arguments.get("working_directory")
-        )
+    except Exception as e:
+        logger.error(f"Error in handle_call_tool: {e}")
         return [
             types.TextContent(
                 type="text",
-                text=result["output"]
+                text=f"Error: {str(e)}"
             )
         ]
-    
-    elif name == "change_directory":
-        result = await shell_executor.change_directory(arguments.get("path"))
-        return [
-            types.TextContent(
-                type="text", 
-                text=result["output"]
-            )
-        ]
-    
-    elif name == "get_current_directory":
-        result = shell_executor.get_current_directory()
-        return [
-            types.TextContent(
-                type="text",
-                text=result["output"]
-            )
-        ]
-    
-    else:
-        raise ValueError(f"Unknown tool: {name}")
 
 async def main():
-    """Main entry point"""
-    # Run the server using stdin/stdout streams
-    from mcp.server.stdio import stdio_server
-    
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options()
-        )
+    """Main entry point with error handling"""
+    try:
+        # Run the server using stdin/stdout streams
+        from mcp.server.stdio import stdio_server
+        
+        logger.info("Starting MCP Linux Shell Server...")
+        
+        async with stdio_server() as (read_stream, write_stream):
+            await server.run(
+                read_stream,
+                write_stream,
+                server.create_initialization_options()
+            )
+    except KeyboardInterrupt:
+        logger.info("Server stopped by user")
+    except Exception as e:
+        logger.error(f"Server error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Server shutdown completed")
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        import sys
+        sys.exit(1)

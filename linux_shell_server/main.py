@@ -228,33 +228,37 @@ class ShellExecutor:
             }
     
     async def change_directory(self, path: str) -> Dict[str, Any]:
-        """Change the current working directory with async validation"""
+        """Change the current working directory"""
         try:
             expanded_path = os.path.expanduser(path)
             abs_path = os.path.abspath(expanded_path)
             
-            # Use async check if path is accessible
+            # Check if directory exists and is accessible
+            if not os.path.exists(abs_path):
+                return {
+                    "output": f"Error: Directory '{abs_path}' does not exist",
+                    "error": True
+                }
+            
+            if not os.path.isdir(abs_path):
+                return {
+                    "output": f"Error: '{abs_path}' is not a directory",
+                    "error": True
+                }
+            
+            # Try to access the directory
             try:
-                # Quick async test by trying to list the directory
-                proc = await asyncio.create_subprocess_exec(
-                    'test', '-d', abs_path,
-                    stdout=asyncio.subprocess.DEVNULL,
-                    stderr=asyncio.subprocess.DEVNULL
-                )
-                await proc.wait()
-                
-                if proc.returncode != 0:
-                    return {
-                        "output": f"Error: Directory '{abs_path}' does not exist or is not accessible",
-                        "error": True
-                    }
-            except:
-                # Fallback to sync check
-                if not os.path.exists(abs_path) or not os.path.isdir(abs_path):
-                    return {
-                        "output": f"Error: Directory '{abs_path}' does not exist or is not a directory",
-                        "error": True
-                    }
+                os.listdir(abs_path)
+            except PermissionError:
+                return {
+                    "output": f"Error: Permission denied accessing directory '{abs_path}'",
+                    "error": True
+                }
+            except Exception as e:
+                return {
+                    "output": f"Error: Cannot access directory '{abs_path}': {str(e)}",
+                    "error": True
+                }
             
             self.current_directory = abs_path
             return {
@@ -404,7 +408,7 @@ async def main():
     """Main entry point with error handling"""
     try:
         # Run the server using stdin/stdout streams
-        from mcp.server.stdio import stdio_server
+        from mcp import stdio_server
         
         logger.info("Starting MCP Linux Shell Server...")
         

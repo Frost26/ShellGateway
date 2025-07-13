@@ -2,7 +2,6 @@
 """
 MCP Server for Linux Shell Access
 Provides tools for executing Linux commands safely through MCP protocol.
-Fixed version to handle connection issues properly.
 """
 
 import asyncio
@@ -19,9 +18,7 @@ from mcp.server import Server
 from mcp.types import (
     Tool,
     TextContent,
-    InitializeResult,
-    Resource,
-    Prompt
+    InitializeResult
 )
 import mcp.types as types
 
@@ -30,10 +27,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("linux-shell-server")
 
 # Performance Configuration
-DEFAULT_TIMEOUT = 30  # Reduced from 200 to 30 seconds
-MAX_TIMEOUT = 120     # Reduced from 500 to 120 seconds
-MAX_OUTPUT_SIZE = 10000  # Reduced from 50000 to 10000 characters
-CACHE_DURATION = 60   # Reduced cache duration
+DEFAULT_TIMEOUT = 200  # seconds
+MAX_TIMEOUT = 500     # 5 minutes max for long operations
+MAX_OUTPUT_SIZE = 50000  # Maximum characters in output
+CACHE_DURATION = 200   # Cache duration in seconds
 
 # Commands that typically take longer
 LONG_RUNNING_COMMANDS = {'find', 'grep', 'du', 'tar', 'zip', 'rsync', 'cp', 'mv'}
@@ -137,7 +134,7 @@ class ShellExecutor:
                     logger.error(f"Error killing process: {e}")
                 
                 try:
-                    await asyncio.wait_for(process.wait(), timeout=5)
+                    await process.wait()
                 except:
                     pass
             
@@ -148,7 +145,7 @@ class ShellExecutor:
             if process is not None:
                 try:
                     process.terminate()
-                    await asyncio.wait_for(process.wait(), timeout=5)
+                    await process.wait()
                 except:
                     pass
             raise
@@ -263,7 +260,6 @@ class ShellExecutor:
                     "error": True
                 }
             
-            # Change directory
             self.current_directory = abs_path
             return {
                 "output": f"Changed directory to: {abs_path}",
@@ -279,17 +275,10 @@ class ShellExecutor:
     
     def get_current_directory(self) -> Dict[str, Any]:
         """Get the current working directory"""
-        try:
-            return {
-                "output": f"Current directory: {self.current_directory}",
-                "error": False
-            }
-        except Exception as e:
-            logger.error(f"Error getting current directory: {e}")
-            return {
-                "output": f"Error getting current directory: {str(e)}",
-                "error": True
-            }
+        return {
+            "output": f"Current directory: {self.current_directory}",
+            "error": False
+        }
 
 # Create shell executor instance
 shell_executor = ShellExecutor()
@@ -339,17 +328,6 @@ async def handle_list_tools() -> List[Tool]:
             }
         )
     ]
-
-# Add missing MCP endpoints to fix "Method not found" errors
-@server.list_resources()
-async def handle_list_resources() -> List[Resource]:
-    """List available resources - Currently no resources are provided"""
-    return []
-
-@server.list_prompts()
-async def handle_list_prompts() -> List[Prompt]:
-    """List available prompts - Currently no prompts are provided"""
-    return []
 
 @server.call_tool()
 async def handle_call_tool(name: str, arguments: dict) -> List[types.TextContent]:
@@ -433,10 +411,8 @@ async def main():
         from mcp import stdio_server
         
         logger.info("Starting MCP Linux Shell Server...")
-        logger.info("Initializing server...")
         
         async with stdio_server() as (read_stream, write_stream):
-            logger.info("Server started and connected successfully")
             await server.run(
                 read_stream,
                 write_stream,

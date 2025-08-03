@@ -12,8 +12,11 @@ import subprocess
 import sys
 import os
 import shlex
+import shutil
 import signal
 import time
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from mcp.server import Server
 from mcp.types import (
@@ -39,6 +42,10 @@ CACHE_DURATION = 60   # Reduced cache duration
 LONG_RUNNING_COMMANDS = {'find', 'grep', 'du', 'tar', 'zip', 'rsync', 'cp', 'mv'}
 # Commands safe to cache
 CACHEABLE_COMMANDS = {'ls', 'pwd', 'whoami', 'id', 'date', 'hostname', 'uname'}
+
+# Claude workspace configuration
+CLAUDE_WORKSPACE_DIR = Path.home() / "claude-workspace"
+WORKSPACE_CLEANUP_DAYS = 7  # Clean up files older than this
 
 class CommandCache:
     """Simple cache for command results"""
@@ -67,8 +74,46 @@ server = Server("linux-shell-server")
 
 class ShellExecutor:
     def __init__(self):
-        self.current_directory = os.path.expanduser("~")
+        # Initialize claude workspace
+        self._initialize_workspace()
+        self.current_directory = str(CLAUDE_WORKSPACE_DIR)
         self.cache = CommandCache()
+    
+    def _initialize_workspace(self):
+        """Initialize the Claude workspace directory"""
+        try:
+            # Create workspace directory if it doesn't exist
+            CLAUDE_WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Claude workspace initialized at: {CLAUDE_WORKSPACE_DIR}")
+            
+            # Clean up old files
+            self._cleanup_old_files()
+            
+            # Create session subdirectory
+            session_dir = CLAUDE_WORKSPACE_DIR / f"session-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+            session_dir.mkdir(exist_ok=True)
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize workspace: {e}")
+            # Fall back to home directory if workspace creation fails
+            self.current_directory = os.path.expanduser("~")
+    
+    def _cleanup_old_files(self):
+        """Clean up files older than WORKSPACE_CLEANUP_DAYS"""
+        try:
+            cutoff_time = datetime.now() - timedelta(days=WORKSPACE_CLEANUP_DAYS)
+            
+            for item in CLAUDE_WORKSPACE_DIR.iterdir():
+                if item.is_dir() and item.name.startswith("session-"):
+                    # Check modification time
+                    mtime = datetime.fromtimestamp(item.stat().st_mtime)
+                    if mtime < cutoff_time:
+                        # Remove old session directory
+                        shutil.rmtree(item)
+                        logger.info(f"Cleaned up old session: {item.name}")
+                        
+        except Exception as e:
+            logger.warning(f"Error during workspace cleanup: {e}")
         
     def _determine_timeout(self, command: str) -> int:
         """Determine appropriate timeout based on command type"""
@@ -233,7 +278,13 @@ class ShellExecutor:
     async def change_directory(self, path: str) -> Dict[str, Any]:
         """Change the current working directory"""
         try:
-            expanded_path = os.path.expanduser(path)
+            # Expand user home directory and environment variables
+            expanded_path = os.path.expanduser(os.path.expandvars(path))
+            
+            # Handle relative paths from current directory
+            if not os.path.isabs(expanded_path):
+                expanded_path = os.path.join(self.current_directory, expanded_path)
+            
             abs_path = os.path.abspath(expanded_path)
             
             # Check if directory exists and is accessible
@@ -290,6 +341,20 @@ class ShellExecutor:
                 "output": f"Error getting current directory: {str(e)}",
                 "error": True
             }
+    
+    def get_workspace_directory(self) -> Dict[str, Any]:
+        """Get the Claude workspace directory"""
+        try:
+            return {
+                "output": f"Claude workspace directory: {CLAUDE_WORKSPACE_DIR}",
+                "error": False
+            }
+        except Exception as e:
+            logger.error(f"Error getting workspace directory: {e}")
+            return {
+                "output": f"Error getting workspace directory: {str(e)}",
+                "error": True
+            }
 
 # Create shell executor instance
 shell_executor = ShellExecutor()
@@ -333,6 +398,14 @@ async def handle_list_tools() -> List[Tool]:
         Tool(
             name="get_current_directory",
             description="Get the current working directory",
+            inputSchema={
+                "type": "object",
+                "properties": {}
+            }
+        ),
+        Tool(
+            name="get_workspace_directory",
+            description="Get the Claude workspace directory (a safe place for temporary work)",
             inputSchema={
                 "type": "object",
                 "properties": {}
@@ -402,6 +475,15 @@ async def handle_call_tool(name: str, arguments: dict) -> List[types.TextContent
         
         elif name == "get_current_directory":
             result = shell_executor.get_current_directory()
+            return [
+                types.TextContent(
+                    type="text",
+                    text=result["output"]
+                )
+            ]
+        
+        elif name == "get_workspace_directory":
+            result = shell_executor.get_workspace_directory()
             return [
                 types.TextContent(
                     type="text",

@@ -22,6 +22,8 @@ class TestShellExecutor:
         assert executor.current_directory is not None
         # Check if it's a valid path
         assert os.path.exists(executor.current_directory)
+        # Should initialize to claude-workspace directory
+        assert "claude-workspace" in executor.current_directory
     
     def test_get_current_directory(self):
         """Test getting current directory"""
@@ -122,12 +124,13 @@ class TestMCPHandlers:
         """Test the list_tools handler"""
         tools = await handle_list_tools()
         
-        assert len(tools) == 3
+        assert len(tools) == 4
         tool_names = [tool.name for tool in tools]
         
         assert "execute_command" in tool_names
         assert "change_directory" in tool_names
         assert "get_current_directory" in tool_names
+        assert "get_workspace_directory" in tool_names
         
         # Check execute_command tool schema
         execute_tool = next(tool for tool in tools if tool.name == "execute_command")
@@ -211,3 +214,13 @@ class TestMCPHandlers:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "required" in result[0].text.lower()
+    
+    @pytest.mark.asyncio
+    async def test_call_tool_get_workspace_directory(self):
+        """Test calling get_workspace_directory tool"""
+        result = await handle_call_tool("get_workspace_directory", {})
+        
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Claude workspace directory:" in result[0].text
+        assert "claude-workspace" in result[0].text

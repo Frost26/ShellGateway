@@ -1,13 +1,13 @@
 {
   "mcpServers": {
     "linux-shell": {
-      "command": "/home/username/Documents/CodeProjects/mcp-linux-shell-server/mcpEnv/bin/python",
+      "command": "/home/username/Documents/CodeProjects/ShellGateway/mcpEnv/bin/python",
       "args": [
         "-m",
         "linux_shell_server.main"
       ],
       "env": {
-        "PYTHONPATH": "/home/username/Documents/CodeProjects/mcp-linux-shell-server"
+        "PYTHONPATH": "/home/username/Documents/CodeProjects/ShellGateway"
       }
     }
   }
